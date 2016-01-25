@@ -52,6 +52,7 @@
     <Compile Include="ContextPane.Designer.cs">
       <DependentUpon>ContextPane.cs</DependentUpon>
     </Compile>
+    <Compile Include="GPUTrace.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>

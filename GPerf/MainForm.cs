@@ -15,6 +15,18 @@ namespace GPerf
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            OpenFileDialog openDialog = new OpenFileDialog();
+            if (openDialog.ShowDialog() != DialogResult.OK)
+            {
+                Close();
+                return;
+            }
+
+            GPUTrace trace = new GPUTrace();
+            trace.Load(openDialog.FileName);
+            Close();
+            return;
+
             tablePanel.RowCount = 2;
 
             ProcessPane pane = new ProcessPane(2345, "Outlook.exe");
