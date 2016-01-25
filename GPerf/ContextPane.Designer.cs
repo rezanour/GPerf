@@ -54,22 +54,21 @@
             // 
             this.packetPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.packetPanel.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.packetPanel.BackColor = System.Drawing.SystemColors.ControlLight;
             this.packetPanel.Location = new System.Drawing.Point(86, 21);
             this.packetPanel.Name = "packetPanel";
-            this.packetPanel.Size = new System.Drawing.Size(433, 43);
+            this.packetPanel.Size = new System.Drawing.Size(200, 43);
             this.packetPanel.TabIndex = 2;
             // 
             // ContextPane
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.Controls.Add(this.packetPanel);
             this.Controls.Add(this.colorKeyPanel);
             this.Controls.Add(this.contextLabel);
             this.Name = "ContextPane";
-            this.Size = new System.Drawing.Size(522, 68);
+            this.Size = new System.Drawing.Size(289, 70);
             this.ResumeLayout(false);
             this.PerformLayout();
 

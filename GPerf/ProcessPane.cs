@@ -21,11 +21,28 @@ namespace GPerf
         {
             processNameLabel.Text = string.Format("{0} ({1})", ProcessName, ProcessId);
 
+            tablePanel.RowCount = 2;
+
             ContextPane pane = new ContextPane(Color.Green);
-            flowPanel.Controls.Add(pane);
+            pane.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
+            tablePanel.Controls.Add(pane);
+            tablePanel.SetRow(pane, 0);
 
             pane = new ContextPane(Color.Blue);
-            flowPanel.Controls.Add(pane);
+            pane.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
+            tablePanel.Controls.Add(pane);
+            tablePanel.SetRow(pane, 1);
+
+            int height = 0;
+            foreach (Control control in tablePanel.Controls)
+            {
+                height += control.Height;
+            }
+
+            int oldHeight = tablePanel.Height;
+            tablePanel.Height = height;
+
+            Height += height - oldHeight;
         }
     }
 }
