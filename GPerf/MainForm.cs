@@ -1,11 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace GPerf
@@ -15,6 +8,19 @@ namespace GPerf
         public MainForm()
         {
             InitializeComponent();
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            tablePanel.RowCount = 2;
+
+            ProcessPane pane = new ProcessPane(2345, "Outlook.exe");
+            tablePanel.Controls.Add(pane);
+            tablePanel.SetRow(pane, 0);
+
+            pane = new ProcessPane(1173, "OculusWorldDemo.exe");
+            tablePanel.Controls.Add(pane);
+            tablePanel.SetRow(pane, 1);
         }
     }
 }
