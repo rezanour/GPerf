@@ -46,13 +46,14 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataModel\Adapter.cs" />
     <Compile Include="ContextPane.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="ContextPane.Designer.cs">
       <DependentUpon>ContextPane.cs</DependentUpon>
     </Compile>
-    <Compile Include="GPUTrace.cs" />
+    <Compile Include="DataModel\GPUTrace.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
