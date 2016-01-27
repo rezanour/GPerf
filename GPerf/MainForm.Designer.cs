@@ -28,44 +28,26 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.tablePanel = new System.Windows.Forms.TableLayoutPanel();
-            this.timelinePanel = new System.Windows.Forms.Panel();
+            this.mainPanel = new System.Windows.Forms.Panel();
             this.SuspendLayout();
             // 
-            // tablePanel
+            // mainPanel
             // 
-            this.tablePanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.tablePanel.AutoScroll = true;
-            this.tablePanel.BackColor = System.Drawing.SystemColors.ControlDark;
-            this.tablePanel.ColumnCount = 1;
-            this.tablePanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.tablePanel.Location = new System.Drawing.Point(12, 51);
-            this.tablePanel.Name = "tablePanel";
-            this.tablePanel.RowCount = 1;
-            this.tablePanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tablePanel.Size = new System.Drawing.Size(981, 578);
-            this.tablePanel.TabIndex = 0;
-            // 
-            // timelinePanel
-            // 
-            this.timelinePanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.timelinePanel.Location = new System.Drawing.Point(12, 12);
-            this.timelinePanel.Name = "timelinePanel";
-            this.timelinePanel.Size = new System.Drawing.Size(981, 33);
-            this.timelinePanel.TabIndex = 1;
-            this.timelinePanel.Paint += new System.Windows.Forms.PaintEventHandler(this.timelinePanel_Paint);
+            this.mainPanel.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.mainPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.mainPanel.Location = new System.Drawing.Point(0, 0);
+            this.mainPanel.Name = "mainPanel";
+            this.mainPanel.Size = new System.Drawing.Size(2010, 1233);
+            this.mainPanel.TabIndex = 0;
+            this.mainPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.mainPanel_Paint);
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1005, 641);
-            this.Controls.Add(this.timelinePanel);
-            this.Controls.Add(this.tablePanel);
-            this.Margin = new System.Windows.Forms.Padding(2);
+            this.ClientSize = new System.Drawing.Size(2010, 1233);
+            this.Controls.Add(this.mainPanel);
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.Name = "MainForm";
             this.Text = "GPerf";
             this.Load += new System.EventHandler(this.MainForm_Load);
@@ -75,8 +57,7 @@
 
         #endregion
 
-        private System.Windows.Forms.TableLayoutPanel tablePanel;
-        private System.Windows.Forms.Panel timelinePanel;
+        private System.Windows.Forms.Panel mainPanel;
     }
 }
 

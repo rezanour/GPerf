@@ -36,6 +36,7 @@ namespace GPerf
     {
         public ulong hContext = 0;
         public AdapterNode Node = null;
-        public Dictionary<long, DmaPacket> DmaPackets = new Dictionary<long, DmaPacket>();
+        public List<DmaPacket> DmaPackets = new List<DmaPacket>();
+        public Dictionary<long, DmaPacket> DmaLookup = new Dictionary<long, DmaPacket>();
     }
 }

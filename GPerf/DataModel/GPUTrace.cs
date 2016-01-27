@@ -8,6 +8,33 @@ namespace GPerf
 {
     class GPUTrace
     {
+        #region Properties
+        public DateTime StartTime { get; private set; }
+        public DateTime EndTime { get; private set; }
+        public List<DmaPacket> GetDmaPackets()
+        {
+            List<DmaPacket> allPackets = new List<DmaPacket>();
+            foreach (SchedulingContext context in contexts)
+            {
+                allPackets.AddRange(context.DmaPackets);
+            }
+            allPackets.Sort(new Comparison<DmaPacket>(
+                (DmaPacket a, DmaPacket b) =>
+                {
+                    if (a.Start < b.Start)
+                    {
+                        return -1;
+                    }
+                    else if (b.Start < a.Start)
+                    {
+                        return 1;
+                    }
+                    return 0;
+                }));
+            return allPackets;
+        }
+        #endregion Properties
+
         #region Fields
         // Provider Guids for providers we care about
         private Guid ntGuid = new Guid(); // all 0s is NT guid
@@ -41,7 +68,8 @@ namespace GPerf
         private Dictionary<ulong, AdapterInfo> adapters = new Dictionary<ulong, AdapterInfo>();
 
         // Dictionary of hContext -> SchedulingContext
-        private Dictionary<ulong, SchedulingContext> contexts = new Dictionary<ulong, SchedulingContext>();
+        private Dictionary<ulong, SchedulingContext> contextLookup = new Dictionary<ulong, SchedulingContext>();
+        private List<SchedulingContext> contexts = new List<SchedulingContext>();
 
         #endregion Fields
 
@@ -141,9 +169,9 @@ namespace GPerf
             SchedulingContext context = FindOrCreateContext(hContext);
 
             DmaPacket packet = null;
-            if (context.DmaPackets.ContainsKey(submissionId))
+            if (context.DmaLookup.ContainsKey(submissionId))
             {
-                packet = context.DmaPackets[submissionId];
+                packet = context.DmaLookup[submissionId];
             }
             else
             {
@@ -151,7 +179,8 @@ namespace GPerf
                 packet.SubmissionId = submissionId;
                 packet.QueueSubmitSequence = queueSubmitSequence;
                 packet.PacketType = packetType;
-                context.DmaPackets.Add(submissionId, packet);
+                context.DmaPackets.Add(packet);
+                context.DmaLookup.Add(submissionId, packet);
             }
 
             packet.Start = obj.TimeStamp;
@@ -186,13 +215,13 @@ namespace GPerf
             SchedulingContext context = FindOrCreateContext(hContext);
 
             DmaPacket packet = null;
-            if (!context.DmaPackets.ContainsKey(submissionId))
+            if (!context.DmaLookup.ContainsKey(submissionId))
             {
                 // End packet for something we don't about, drop it
                 return;
             }
 
-            packet = context.DmaPackets[submissionId];
+            packet = context.DmaLookup[submissionId];
             packet.End = obj.TimeStamp;
         }
 
@@ -237,15 +266,16 @@ namespace GPerf
         SchedulingContext FindOrCreateContext(ulong hContext)
         {
             // Already seen this context?
-            if (contexts.ContainsKey(hContext))
+            if (contextLookup.ContainsKey(hContext))
             {
-                return contexts[hContext];
+                return contextLookup[hContext];
             }
             else
             {
                 SchedulingContext context = new SchedulingContext();
                 context.hContext = hContext;
-                contexts.Add(hContext, context);
+                contexts.Add(context);
+                contextLookup.Add(hContext, context);
                 return context;
             }
         }

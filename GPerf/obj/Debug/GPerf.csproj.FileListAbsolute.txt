@@ -26,9 +26,9 @@ C:\Git\GPerf\GPerf\bin\Debug\Microsoft.Diagnostics.Tracing.TraceEvent.dll
 C:\Git\GPerf\GPerf\bin\Debug\Microsoft.Diagnostics.Tracing.TraceEvent.xml
 C:\Git\GPerf\GPerf\obj\Debug\GPerf.csprojResolveAssemblyReference.cache
 C:\Git\GPerf\GPerf\obj\Debug\GPerf.ContextPane.resources
-C:\Git\GPerf\GPerf\obj\Debug\GPerf.MainForm.resources
 C:\Git\GPerf\GPerf\obj\Debug\GPerf.ProcessPane.resources
 C:\Git\GPerf\GPerf\obj\Debug\GPerf.Properties.Resources.resources
 C:\Git\GPerf\GPerf\obj\Debug\GPerf.csproj.GenerateResource.Cache
 C:\Git\GPerf\GPerf\obj\Debug\GPerf.exe
 C:\Git\GPerf\GPerf\obj\Debug\GPerf.pdb
+C:\Git\GPerf\GPerf\obj\Debug\GPerf.DmaPacketVisual.resources
