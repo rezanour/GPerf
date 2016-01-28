@@ -47,12 +47,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataModel\Adapter.cs" />
-    <Compile Include="ContextPane.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ContextPane.Designer.cs">
-      <DependentUpon>ContextPane.cs</DependentUpon>
-    </Compile>
     <Compile Include="DataModel\GPUTrace.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
@@ -60,22 +54,11 @@
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="ProcessPane.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ProcessPane.Designer.cs">
-      <DependentUpon>ProcessPane.cs</DependentUpon>
-    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="ContextPane.resx">
-      <DependentUpon>ContextPane.cs</DependentUpon>
-    </EmbeddedResource>
+    <Compile Include="Visualization\Visuals.cs" />
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ProcessPane.resx">
-      <DependentUpon>ProcessPane.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -96,15 +79,16 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <None Include="_TraceEventProgrammersGuide.docx" />
+    <None Include="Docs\_TraceEventProgrammersGuide.docx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="TraceEvent.ReadMe.txt" />
-    <Content Include="TraceEvent.ReleaseNotes.txt" />
+    <Content Include="Docs\TraceEvent.ReadMe.txt" />
+    <Content Include="Docs\TraceEvent.ReleaseNotes.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.40\build\Microsoft.Diagnostics.Tracing.TraceEvent.targets" Condition="Exists('..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.40\build\Microsoft.Diagnostics.Tracing.TraceEvent.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

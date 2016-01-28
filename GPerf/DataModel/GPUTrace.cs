@@ -36,6 +36,9 @@ namespace GPerf
         #endregion Properties
 
         #region Fields
+
+        bool seenStartTime = false;
+
         // Provider Guids for providers we care about
         private Guid ntGuid = new Guid(); // all 0s is NT guid
         private Guid dxgkrnlGuid = new Guid("802ec45a-1e99-4b83-9920-87c98277ba9d");
@@ -103,6 +106,14 @@ namespace GPerf
         #region Top Level Parsing
         private void Parser_All(TraceEvent obj)
         {
+            if (!seenStartTime)
+            {
+                StartTime = obj.TimeStamp;
+                seenStartTime = true;
+            }
+
+            EndTime = obj.TimeStamp;
+
             if (obj.ProviderGuid == ntGuid)
             {
                 if (obj.EventName.Contains("Process"))
