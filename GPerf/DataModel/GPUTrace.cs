@@ -9,12 +9,19 @@ namespace GPerf
     class GPUTrace
     {
         #region Properties
+
         public DateTime StartTime { get; private set; }
         public DateTime EndTime { get; private set; }
+
+        public List<ProcessInfo> AllProcesses { get; private set; }
+        public List<AdapterInfo> AllAdapters { get; private set; }
+        public List<DeviceInfo> AllDevices { get; private set; }
+        public List<ContextInfo> AllContexts { get; private set; }
+
         public List<DmaPacket> GetDmaPackets()
         {
             List<DmaPacket> allPackets = new List<DmaPacket>();
-            foreach (SchedulingContext context in contexts)
+            foreach (ContextInfo context in AllContexts)
             {
                 allPackets.AddRange(context.DmaPackets);
             }
@@ -46,6 +53,9 @@ namespace GPerf
         // Dxgkrnl event ids that we care about
         private enum DxgkrnlEvent
         {
+            Adapter_DCStart = 26,
+            Device_DCStart = 29,
+            Context_DCStart = 32,
             DpiReportAdapter = 110,
             DmaPacket_Start = 175,
             DmaPacket_Stop = 176,
@@ -67,19 +77,32 @@ namespace GPerf
         // Parsed data
         //
 
-        // Dictionary of pDxgiAdapter -> Adapter
-        private Dictionary<ulong, AdapterInfo> adapters = new Dictionary<ulong, AdapterInfo>();
+        // Dictionary of processId -> ProcessInfo
+        private Dictionary<int, ProcessInfo> processLookup = new Dictionary<int, ProcessInfo>();
 
-        // Dictionary of hContext -> SchedulingContext
-        private Dictionary<ulong, SchedulingContext> contextLookup = new Dictionary<ulong, SchedulingContext>();
-        private List<SchedulingContext> contexts = new List<SchedulingContext>();
+        // Dictionary of pDxgiAdapter -> AdapterInfo
+        private Dictionary<ulong, AdapterInfo> adapterLookup = new Dictionary<ulong, AdapterInfo>();
+
+        // Dictionary of hDevice -> DeviceInfo
+        private Dictionary<ulong, DeviceInfo> deviceLookup = new Dictionary<ulong, DeviceInfo>();
+
+        // Dictionary of hContext -> ContextInfo
+        private Dictionary<ulong, ContextInfo> contextLookup = new Dictionary<ulong, ContextInfo>();
 
         #endregion Fields
 
         #region Ctor & Load
         public GPUTrace()
         {
+            AllProcesses = new List<ProcessInfo>();
+            AllAdapters = new List<AdapterInfo>();
+            AllDevices = new List<DeviceInfo>();
+            AllContexts = new List<ContextInfo>();
+
             // set up the table
+            dxgkrnlEventHandlers.Add((int)DxgkrnlEvent.Adapter_DCStart, OnDxgkrnlAdapterStart);
+            dxgkrnlEventHandlers.Add((int)DxgkrnlEvent.Device_DCStart, OnDxgkrnlDeviceStart);
+            dxgkrnlEventHandlers.Add((int)DxgkrnlEvent.Context_DCStart, OnDxgkrnlContextStart);
             dxgkrnlEventHandlers.Add((int)DxgkrnlEvent.DpiReportAdapter, OnDxgkrnlDpiReportAdapter);
             dxgkrnlEventHandlers.Add((int)DxgkrnlEvent.DmaPacket_Start, OnDxgkrnlDmaPacketStart);
             dxgkrnlEventHandlers.Add((int)DxgkrnlEvent.DmaPacket_Info, OnDxgkrnlDmaPacketInfo);
@@ -133,6 +156,69 @@ namespace GPerf
         #endregion Top Level Parsing
 
         #region Dxgkrnl Events
+
+        void OnDxgkrnlAdapterStart(TraceEvent obj)
+        {
+            Debug.Assert(obj.EventName == "Adapter/DC_Start" && obj.PayloadNames.Length == 27);
+
+            Debug.Assert(obj.PayloadNames[1] == "pDxgAdapter");
+            ulong pDxgAdapter = (ulong)obj.PayloadValue(1);
+
+            if (adapterLookup.ContainsKey(pDxgAdapter))
+            {
+                Debug.Assert(false);
+                return;
+            }
+
+            AdapterInfo adapter = new AdapterInfo();
+            AllAdapters.Add(adapter);
+            adapterLookup.Add(pDxgAdapter, adapter);
+
+            adapter.pDxgiAdapter = pDxgAdapter;
+
+            Debug.Assert(obj.PayloadNames[2] == "NbVidPnSources");
+            adapter.NumVidPnSources = (int)obj.PayloadValue(2);
+
+            Debug.Assert(obj.PayloadNames[22] == "PagingNode");
+            adapter.PagingNode = (int)obj.PayloadValue(22);
+
+            Debug.Assert(obj.PayloadNames[25] == "AdapterType");
+            adapter.AdapterType = (AdapterType)(int)obj.PayloadValue(25);
+        }
+
+        void OnDxgkrnlDeviceStart(TraceEvent obj)
+        {
+            Debug.Assert(obj.EventName == "Device/DC_Start" && obj.PayloadNames.Length == 6);
+
+            Debug.Assert(obj.PayloadNames[0] == "hProcessId");
+            int processId = (int)(UInt64)obj.PayloadValue(0);
+
+            Debug.Assert(obj.PayloadNames[1] == "pDxgAdapter");
+            ulong pDxgAdapter = (ulong)obj.PayloadValue(1);
+
+            Debug.Assert(obj.PayloadNames[3] == "hDevice");
+            ulong hDevice = (ulong)obj.PayloadValue(3);
+
+            // Make sure the device doesn't already exist (error if it does)
+            if (deviceLookup.ContainsKey(hDevice))
+            {
+                Debug.Assert(false);
+                return;
+            }
+
+            DeviceInfo device = new DeviceInfo();
+            AllDevices.Add(device);
+            deviceLookup.Add(hDevice, device);
+
+            device.hDevice = hDevice;
+            device.Adapter = FindOrCreateAdapter(pDxgAdapter);
+            device.Process = FindOrCreateProcess(processId);
+        }
+
+        void OnDxgkrnlContextStart(TraceEvent obj)
+        {
+        }
+
         void OnDxgkrnlDpiReportAdapter(TraceEvent obj)
         {
             Debug.Assert(obj.EventName == "DpiReportAdapter" && obj.PayloadNames.Length == 12);
@@ -140,19 +226,13 @@ namespace GPerf
             Debug.Assert(obj.PayloadNames[0] == "pDxgAdapter");
             ulong pDxgiAdapter = (ulong)obj.PayloadValue(0);
 
-            AdapterInfo adapter = null;
+            if (!adapterLookup.ContainsKey(pDxgiAdapter))
+            {
+                Debug.Assert(false);
+                return;
+            }
 
-            // Already seen this adapter?
-            if (adapters.ContainsKey(pDxgiAdapter))
-            {
-                adapter = adapters[pDxgiAdapter];
-            }
-            else
-            {
-                adapter = new AdapterInfo();
-                adapter.pDxgiAdapter = pDxgiAdapter;
-                adapters.Add(pDxgiAdapter, adapter);
-            }
+            AdapterInfo adapter = adapterLookup[pDxgiAdapter];
 
             Debug.Assert(obj.PayloadNames[6] == "VendorID");
             adapter.VendorID = (int)obj.PayloadValue(6);
@@ -177,7 +257,7 @@ namespace GPerf
             Debug.Assert(obj.PayloadNames[4] == "ulQueueSubmitSequence");
             int queueSubmitSequence = (int)obj.PayloadValue(4);
 
-            SchedulingContext context = FindOrCreateContext(hContext);
+            ContextInfo context = FindOrCreateContext(hContext);
 
             DmaPacket packet = null;
             if (context.DmaLookup.ContainsKey(submissionId))
@@ -204,7 +284,7 @@ namespace GPerf
             Debug.Assert(obj.PayloadNames[0] == "hContext");
             ulong hContext = (ulong)obj.PayloadValue(0);
 
-            SchedulingContext context = FindOrCreateContext(hContext);
+            ContextInfo context = FindOrCreateContext(hContext);
         }
 
         void OnDxgkrnlDmaPacketStop(TraceEvent obj)
@@ -223,7 +303,7 @@ namespace GPerf
             Debug.Assert(obj.PayloadNames[3] == "ulQueueSubmitSequence");
             int queueSubmitSequence = (int)obj.PayloadValue(3);
 
-            SchedulingContext context = FindOrCreateContext(hContext);
+            ContextInfo context = FindOrCreateContext(hContext);
 
             DmaPacket packet = null;
             if (!context.DmaLookup.ContainsKey(submissionId))
@@ -274,7 +354,58 @@ namespace GPerf
             Debug.Assert(obj.EventName == "VSyncDPCMultiPlane" && obj.PayloadNames.Length == 5);
         }
 
-        SchedulingContext FindOrCreateContext(ulong hContext)
+        ProcessInfo FindOrCreateProcess(int processId)
+        {
+            // Already seen this process?
+            if (processLookup.ContainsKey(processId))
+            {
+                return processLookup[processId];
+            }
+            else
+            {
+                ProcessInfo process = new ProcessInfo();
+                process.ProcessId = processId;
+                AllProcesses.Add(process);
+                processLookup.Add(processId, process);
+                return process;
+            }
+        }
+
+        AdapterInfo FindOrCreateAdapter(ulong pDxgAdapter)
+        {
+            // Already seen this adapter?
+            if (adapterLookup.ContainsKey(pDxgAdapter))
+            {
+                return adapterLookup[pDxgAdapter];
+            }
+            else
+            {
+                AdapterInfo adapter = new AdapterInfo();
+                adapter.pDxgiAdapter = pDxgAdapter;
+                AllAdapters.Add(adapter);
+                adapterLookup.Add(pDxgAdapter, adapter);
+                return adapter;
+            }
+        }
+
+        DeviceInfo FindOrCreateDevice(ulong hDevice)
+        {
+            // Already seen this device?
+            if (deviceLookup.ContainsKey(hDevice))
+            {
+                return deviceLookup[hDevice];
+            }
+            else
+            {
+                DeviceInfo device = new DeviceInfo();
+                device.hDevice = hDevice;
+                AllDevices.Add(device);
+                deviceLookup.Add(hDevice, device);
+                return device;
+            }
+        }
+
+        ContextInfo FindOrCreateContext(ulong hContext)
         {
             // Already seen this context?
             if (contextLookup.ContainsKey(hContext))
@@ -283,9 +414,9 @@ namespace GPerf
             }
             else
             {
-                SchedulingContext context = new SchedulingContext();
+                ContextInfo context = new ContextInfo();
                 context.hContext = hContext;
-                contexts.Add(context);
+                AllContexts.Add(context);
                 contextLookup.Add(hContext, context);
                 return context;
             }
@@ -294,15 +425,12 @@ namespace GPerf
         //
         // Unused Dxgkrnl Event IDs
         //
-        //Adapter_DCStart = 26,
         //WorkerThread_Start = 18,
         //WorkerThread_Stop = 19,
         //UpdateContextStatus = 20,
         //ChangePriority = 21,
         //AttemptPreemption = 22,
         //SelectContext = 23,
-        //Device_DCStart = 29,
-        //Context_DCStart = 32,
         //AdapterAllocation_DCStart = 35,
         //DeviceAllocation_DC_Start = 38,
         //RefrenceAllocations = 43,

@@ -46,8 +46,10 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataModel\Adapter.cs" />
+    <Compile Include="DataModel\AdapterInfo.cs" />
+    <Compile Include="DataModel\DeviceInfo.cs" />
     <Compile Include="DataModel\GPUTrace.cs" />
+    <Compile Include="DataModel\ProcessInfo.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -6,14 +6,28 @@ using System.Threading.Tasks;
 
 namespace GPerf
 {
+    [Flags]
+    enum AdapterType
+    {
+        Unknown = 0,
+        RenderSupported = 0x0001,
+        PostDevice = 0x0002,
+        SoftwareDevice = 0x0004,
+        DisplaySupported = 0x0008,
+    }
+
     class AdapterInfo
     {
         public ulong pDxgiAdapter = 0;
+        public int NumVidPnSources = 0;
+        public int NumNodes = 0;
+        public int PagingNode = 0;
+        public AdapterType AdapterType = AdapterType.Unknown;
+
         public long AdapterLuid = 0;
         public int VendorID = 0;
         public string Name = "";
         public ulong VideoMemoryBytes = 0;
-        public ulong NodeCount = 0;
     }
 
     class AdapterNode
@@ -32,7 +46,7 @@ namespace GPerf
         public DateTime End = DateTime.MaxValue;
     }
 
-    class SchedulingContext
+    class ContextInfo
     {
         public ulong hContext = 0;
         public AdapterNode Node = null;
